@@ -10,7 +10,7 @@ const submit = async () => {
     return;
   }
   try {
-    const response = await $fetch('https://dct-backend.onrender.com/sentiment/', {
+    const response = await $fetch('https://dctbackend.onrender.com/sentiment/', {
       immediate: false,
       method: 'POST',
       body: { ...Content }
