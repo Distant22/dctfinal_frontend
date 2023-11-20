@@ -3,13 +3,15 @@ const router = useRouter()
 const Content = reactive({
   text: ''
 });
-const showErrorMessage = ref(false);
+const showErrorMessage = ref("");
+const isLoading = ref(false);
 const submit = async () => {
   if (!Content.text) {
-    showErrorMessage.value = true; // Show the error message if Content.text is empty
+    showErrorMessage.value = "blank"; // Show the error message if Content.text is empty
     return;
   }
   try {
+    isLoading.value = true;
     const response = await $fetch('https://dctbackend.onrender.com/sentiment/', {
       immediate: false,
       method: 'POST',
@@ -19,7 +21,11 @@ const submit = async () => {
     router.push({ path: '/result', query: { data: JSON.stringify(response) } });
     console.log('success', response, 'body:', Content);
   } catch (error) {
+    showErrorMessage.value = "error"
     console.error('Error occurred:', error);
+    return 
+  } finally {
+    isLoading.value = false; // Reset loading state after response (success or error)
   }
 };
 </script>
@@ -33,9 +39,11 @@ const submit = async () => {
       <p class="lg:text-lg md:text-md text-sm font-bold text-gray-400 ml-4 mt-2">輸入一串文字，我會根據句子的正/負面給予分數</p>
       <input v-model="Content.text" placeholder="輸入..." class="mt-6 focus:outline-gray-400 py-4 px-8 w-[50%] rounded-full bg-white text-black font-bold drop-shadow-xl" />
       <button @click="submit()" class="my-6 py-4 px-8 w-full max-w-[50%] rounded-full bg-gray-200 text-gray-500 font-bold drop-shadow-xl">
-        <span>送出</span>
+        <span v-if="isLoading">Loading...</span>
+        <span v-else>送出</span>
       </button>
-      <div v-if="showErrorMessage" class="ml-4 font-bold text-gray-400">請輸入文字!</div>
+      <div v-if="showErrorMessage==='blank'" class="ml-4 font-bold text-gray-400">請輸入文字!</div>
+      <div v-else-if="showErrorMessage==='error'" class="ml-4 font-bold text-gray-400">伺服器出錯，請重新整理</div>
       <div v-else class="text-gray-100">_</div>
     </div>
     <div class="lg:w-[20%] md:w-[10%] w-[5%]"></div>
